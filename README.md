@@ -164,17 +164,17 @@ for this scheduling simulator. Play around with some workloads and see if you ca
 
    ## ¿Qué significa esto?
     - Job 0 (el que hace I/O frecuente):
-  -  Con -I termina más rápido: pasa de 265 ms a 195 ms de turnaround.
+    -  Con -I termina más rápido: pasa de 265 ms a 195 ms de turnaround.
 
-   Esto indica que recuperar el CPU más rápidamente tras I/O mejora su rendimiento general.
-
-   Job 1 (CPU-bound):
-   Sin -I termina antes (130 ms), pero con -I se retrasa (200 ms).
-
-   ¿Por qué? Porque el Job 0 le "interrumpe" más seguido al regresar del I/O y va al frente de la cola.
-     El flag -I beneficia trabajos interactivos o con muchas operaciones de I/O, ya que les permite reingresar en la CPU de inmediato, mejorando su tiempo de respuesta y turnaround.
+      Esto indica que recuperar el CPU más rápidamente tras I/O mejora su rendimiento general.
    
-   Pero esto puede perjudicar trabajos intensivos de CPU, que se ven desplazados constantemente.   
+      Job 1 (CPU-bound):
+      Sin -I termina antes (130 ms), pero con -I se retrasa (200 ms).
+   
+      ¿Por qué? Porque el Job 0 le "interrumpe" más seguido al regresar del I/O y va al frente de la cola.
+        El flag -I beneficia trabajos interactivos o con muchas operaciones de I/O, ya que les permite reingresar en la CPU de inmediato, mejorando su tiempo de respuesta y turnaround.
+      
+      Pero esto puede perjudicar trabajos intensivos de CPU, que se ven desplazados constantemente.   
    
    </details>
    <br>
