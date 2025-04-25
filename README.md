@@ -168,7 +168,24 @@ This program, [mlfq.py](mlfq.py), allows you to see how the MLFQ scheduler prese
 
    <details>
    <summary>Answer</summary>
-   Coloque aqui su respuerta
+   # ¿Qué es un Round-Robin scheduler?
+
+**Round-Robin (RR)** es un algoritmo de planificación **simple y justo**. Su comportamiento principal es:
+
+- Todos los trabajos están en una **única cola de prioridad**.
+- Cada trabajo recibe un **quantum fijo de CPU**.
+- Si el trabajo **no termina en ese quantum**, vuelve al **final de la cola**.
+- No hay **degradación de prioridad** ni **boosting**.
+- Ideal para **sistemas interactivos** o donde se busca **equidad**.
+
+---
+
+# ¿Cómo se configura en el simulador MLFQ?
+
+El comando es:
+
+python3 mlfq.py -n 1 -q 3 -j 2 -m 10 -M 0 -B 0 -c
+
    </details>
    <br>
 
