@@ -117,7 +117,7 @@ This program, [mlfq.py](mlfq.py), allows you to see how the MLFQ scheduler prese
        - Un allotment igual al quantum para cada cola (-A 1,1,1), es decir, el trabajo baja de prioridad después de solo 1 ejecución en cada cola.
        - Sin operaciones de (I/O) → I/O frequency = 0.
 
-   ### comando
+   ### Comando
 
         python mlfq.py -n 3 -Q 10,10,10 -A 1,1,1 -l 0,180,0:100,20,0 -j 2 -c
 
@@ -128,7 +128,39 @@ This program, [mlfq.py](mlfq.py), allows you to see how the MLFQ scheduler prese
    ![2 2](https://github.com/user-attachments/assets/4b70104f-027f-4dbd-b030-3d5ab80ca408)
 
     
-    
+    ## Example 3: What About I/O?
+    Let’s now look at an example with some I/O. As Rule 4b states above, if a
+    process gives up the processor before using up its allotment, we keep it at
+    the same priority level. The intent of this rule is simple: if an interactive
+    job, for example, is doing a lot of I/O (say by waiting for user input from
+    the keyboard or mouse), it will relinquish the CPU before its allotment is
+    complete; in such case, we don’t wish to penalize the job and thus simply
+    keep it at the same level.
+    Figure 8.3 (right) shows an example of how this works, with an interactive job B (shown in gray) that needs the CPU only for 1 ms before
+    performing an I/O competing for the CPU with a long-running batch job
+    A (shown in black). The MLFQ approach keeps B at the highest priority because B keeps releasing the CPU; if B is an interactive job, MLFQ
+    further achieves its goal of running interactive jobs quickly.
+
+    Para reproducir el Example 3:   What About I/O? del capítulo usando el simulador mlfq.py, se necesita simular  
+        - Crear dos trabajos, uno de larga duración (A) y uno de corta duración (B).
+        - El trabajo A será un proceso de CPU intensivo y largo, mientras que B será interactivo y corto que realiza operaciones de I/O. Este trabajo debe hacer I/O frecuentemente, lo que lo hará liberar la CPU y mantener su                 prioridad alta..
+        - Utilizar 3 colas, con quantum de 10 ms, -Q 10,10,10. 
+       - Un allotment igual al quantum para cada cola (-A 1,1,1), es decir, el trabajo baja de prioridad después de solo 1 ejecución en cada cola.
+       - El trabajo A sin operaciones de (I/O) → I/O frequency = 0.
+        - El trabajo B con operaciones de (I/O) → I/O frequency = 1.
+
+    ![8 3 RIGHT](https://github.com/user-attachments/assets/5ed85563-f2fe-4c7d-b3cb-2ecd234f56e4)
+
+    ### Comando
+
+             python mlfq.py -n 3 -Q 10,10,10 -A 1,1,1 -l 0,180,0:50,20,1 -j 2 -c
+
+   
+    ### Resultados
+
+    ![3 1](https://github.com/user-attachments/assets/2067f595-6b5a-40da-ac3d-6996c027263a)
+    ![3 2](https://github.com/user-attachments/assets/5b9435a9-0e46-4246-b2e7-29a8b9bffc65)
+
    </details>
    <br>
 
