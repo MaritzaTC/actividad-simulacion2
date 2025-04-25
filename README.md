@@ -47,11 +47,88 @@ This program, [mlfq.py](mlfq.py), allows you to see how the MLFQ scheduler prese
    </details>
    <br>
 
-3. How would you run the scheduler to reproduce each of the examples in the chapter?
+2. How would you run the scheduler to reproduce each of the examples in the chapter?
    
    <details>
    <summary>Answer</summary>
-   Coloque aqui su respuerta
+       
+   ## Example 1: A Single Long-Running Job
+       
+    Let’s look at some examples. First, we’ll look at what happens when there
+    has been a long running job in the system, with a time slice of 10 ms (and
+    with the allotment set equal to the time slice). Figure 8.2 shows what
+    happens to this job over time in a three-queue scheduler.
+    As you can see in the example, the job enters at the highest priority
+    (Q2). After a single time slice of 10 ms, the scheduler reduces the job’s
+    priority by one, and thus the job is on Q1. After running at Q1 for a time
+    slice, the job is finally lowered to the lowest priority in the system (Q0),
+    where it remains. Pretty simple, no?
+   
+    ![figure 8 2](https://github.com/user-attachments/assets/3eb82f0d-2f91-4e64-b8a7-76c6a5f92d6b)
+
+    Para reproducir el Example 1: A Single Long-Running Job del capítulo usando el simulador mlfq.py, se necesita simular
+   - Un solo trabajo de larga duración.
+   - Un planificador con 3 colas (-n 3).
+   - Un quantum de 10 ms para cada cola (-Q 10,10,10).
+   - Un allotment igual al quantum para cada cola (-A 1,1,1), es decir, el trabajo baja de prioridad después de solo 1 ejecución en cada cola.
+   - Sin operaciones de (I/O) → I/O frequency = 0.
+
+     ### Comando
+
+         python mlfq.py -n 3 -Q 10,10,10 -A 1,1,1 -l 0,100,0 -j 1 -c
+
+     
+     ### ¿Qué se espera?
+    1.  Job 0 comienza en Q2.
+    2.  Baja a Q1 después de 10 ms.
+    3.  Luego baja a Q0 después de otros 10 ms.
+    4. Permanece en Q0 el resto del tiempo.
+     
+    ### Resultados:
+    ![example 1](https://github.com/user-attachments/assets/1f176b19-2e90-4234-9efc-aab9ca44f308)
+    ![exaple 1 1](https://github.com/user-attachments/assets/33039f4f-a5c8-4469-844a-493f30ccbd3e)
+
+    ## Example 2: Along Came A Short Job
+    Now let’s look at a more complicated example, and hopefully see how
+    MLFQ tries to approximate SJF. In this example, there are two jobs: A,
+    which is a long-running CPU-intensive job, and B, which is a short-running
+    interactive job. Assume A has been running for some time, and then B arrives. What will happen? Will MLFQ approximate SJF for B?
+    Figure 8.3 on page 5 (left) plots the results of this scenario. Job A
+    (shown in black) is running along in the lowest-priority queue (as would
+    any long-running CPU-intensive jobs); B (shown in gray) arrives at time
+    T = 100, and thus is inserted into the highest queue; as its run-time is
+    short (only 20 ms), B completes before reaching the bottom queue, in two
+    time slices; then A resumes running (at low priority).
+    From this example, you can hopefully understand one of the major
+    goals of the algorithm: because it doesn’t know whether a job will be a
+    short job or a long-running job, it first assumes it might be a short job, thus
+    giving the job high priority. If it actually is a short job, it will run quickly
+    and complete; if it is not a short job, it will slowly move down the queues,
+    and thus soon prove itself to be a long-running more batch-like process.
+    In this manner, MLFQ approximates SJF.
+   
+     ![8 3 1](https://github.com/user-attachments/assets/8fa3d0e4-fcdc-4ea4-be0d-655b14cac503)
+ 
+
+      Para reproducir el Example 2:  Along Came A Short Job del capítulo usando el simulador mlfq.py, se necesita simular  
+        - Crear dos trabajos, uno de larga duración (A) y uno de corta duración (B).
+        - El trabajo A será un proceso de CPU intensivo y largo, mientras que B será interactivo y corto.
+        - Utilizar 3 colas, con quantum de 10 ms, -Q 10,10,10. 
+       - Un allotment igual al quantum para cada cola (-A 1,1,1), es decir, el trabajo baja de prioridad después de solo 1 ejecución en cada cola.
+       - Sin operaciones de (I/O) → I/O frequency = 0.
+
+   ### comando
+
+        python mlfq.py -n 3 -Q 10,10,10 -A 1,1,1 -l 0,180,0:100,20,0 -j 2 -c
+
+   ### Resultados
+
+   ![2 1](https://github.com/user-attachments/assets/ec348cc5-a526-45bd-abe1-6a26d48dacea)
+
+   ![2 2](https://github.com/user-attachments/assets/4b70104f-027f-4dbd-b030-3d5ab80ca408)
+
+    
+    
    </details>
    <br>
 
@@ -211,7 +288,8 @@ for this scheduling simulator. Play around with some workloads and see if you ca
 
 Coloque aqui las conclusiones...
 
-
+## Referencias 
+1. https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-mlfq.pdf
 ### Criterios de evaluación
 - [x] Despligue de los resultados y analisis claro de los resultados respecto a lo visto en la teoria.
 - [x] Creatividad y orden.
