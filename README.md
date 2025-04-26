@@ -169,9 +169,88 @@ This program, [mlfq.py](mlfq.py), allows you to see how the MLFQ scheduler prese
    <details>
    <summary>Answer</summary>
    
+     ## Objetivo
+   Configurar los parámetros del simulador para que el planificador funcione exactamente como un Round-Robin clásico, con una sola cola, quantum fijo y sin degradación ni boosting.
+   
+     ### ¿Qué es un Round-Robin scheduler?: 
+   Round-Robin (RR) es un algoritmo de planificación simple y justo. Su comportamiento principal es:
+   Todos los trabajos están en una única cola de prioridad.
 
-   </details>
-   <br>
+
+   Cada trabajo recibe un quantum fijo de CPU.
+
+
+   Si el trabajo no termina en ese quantum, vuelve al final de la cola.
+
+
+   No hay degradación de prioridad ni boosting.
+
+
+   Ideal para sistemas interactivos o donde se busca equidad.
+
+   
+   El caso a ejecutarse es: 
+   `python3 mlfq.py -n 1 -q 3 -j 2 -m 10 -M 0 -B 0 -c`
+
+  
+      ### Análisis del comando
+    
+    1.  **`-n 1`**: **Una sola cola de planificación**.
+        * No existen niveles de prioridad.
+        * Todos los trabajos compiten por la CPU en la misma cola.
+    
+    2.  **`-q 3`**: **Quantum fijo de 3 ms por turno**.
+        * Cada trabajo puede ejecutar como máximo 3 ms cuando se le asigna la CPU.
+        * Si un trabajo no termina en su quantum, se desalojará para que otro trabajo pueda ejecutarse.
+    
+    3.  **`-j 2`**: **Dos trabajos en la simulación**.
+        * La simulación involucrará dos trabajos o procesos distintos.
+        * Ambos trabajos competirán por los recursos de la CPU.
+    
+    4.  **`-m 10`**: **Allotment de 10 ms por trabajo**.
+        * En el contexto de una única cola de planificación, este parámetro no tiene un efecto directo en cómo se planifican los trabajos.
+        * El allotment se vuelve relevante cuando hay múltiples colas con diferentes prioridades y tiempos de CPU asignados.
+    
+    5.  **`-M 0`**: **Tiempo de I/O desactivado**.
+        * Los trabajos simulados no realizarán operaciones de entrada/salida.
+        * Esto simplifica la planificación al eliminar la espera de recursos externos como factor.
+    
+    6.  **`-B 0`**: **Boosting desactivado**.
+        * No se aplicará ningún mecanismo para ajustar dinámicamente la prioridad de los trabajos.
+        * En este caso de una sola cola, esto significa que no habrá reordenamiento basado en el tiempo de espera u otros criterios de "boosting".
+    
+    7.  **`-c`**: **Muestra el trace detallado de ejecución**.
+        * El simulador generará un registro detallado de la ejecución de los trabajos.
+        * Este trace incluirá información sobre la asignación de la CPU, los cambios de contexto y la duración de cada quantum asignado a cada trabajo.
+    
+    
+
+   ## Resultados
+
+   ![image5](https://github.com/user-attachments/assets/1e37a84d-b06c-44c7-81c4-7d9ef464ff00)
+
+
+
+   ###  **Resultado Esperado**
+
+    * Todos los trabajos comparten la misma cola.
+    
+    * El scheduler rota entre ellos cada 3 ms.
+    
+    * Sin degradación, sin boost, sin interrupciones externas.
+    
+    ###  **Resultado Real (Resumen del trace):**
+    
+    * Job 0 comienza, corre 3 ms (hasta agotar quantum), luego entra Job 1\.
+    
+    * Se alternan estrictamente en bloques de 3 ms.
+    
+    * Cada trabajo recibe **su justo turno**, sin que uno bloquee al otro.
+    
+    * Esto es **comportamiento clásico de Round-Robin**.
+       </details>
+       <br>
+
 
 4. Craft a workload with two jobs and scheduler parameters so that one job takes advantage of the older Rules 4a and 4b (turned on
 with the -S flag) to game the scheduler and obtain 99% of the CPU over a particular time interval.
@@ -250,9 +329,55 @@ with the -S flag) to game the scheduler and obtain 99% of the CPU over a particu
 
    <details>
    <summary>Answer</summary>
-   Coloque aqui su respuerta
-   </details>
-   <br>
+   
+   ## **¿Qué busca esta pregunta?**
+
+    Queremos asegurarnos de que un trabajo de larga duración que ha caído a colas de menor prioridad no se quede "hambriento" (sin CPU). Para eso, usamos el flag `-B`, que **sube todos los procesos de nuevo a la 
+    cola más alta** cada cierto tiempo.
+    
+    Nuestro objetivo:  
+     ✔ Que al menos un trabajo reciba el **5% del tiempo total de CPU**, incluso si ha sido degradado.
+    
+    ### **Cálculo clave**
+    
+    Sabemos que:
+    
+    * El trabajo, al ser promovido, recibe **10 ms** de CPU (quantum).
+    
+    * Es necesario que el proceso reciba al menos 10 milisegundos de CPU dentro de cada intervalo de 200 milisegundos, lo que equivale a un uso mínimo del 5%.
+    
+    ### **Resultado**
+    
+    **El boost debe ocurrir cada 200 ms o menos** para garantizar el 5% de CPU.
+    
+    ### **Comando usado**
+      
+    `python3 mlfq.py -n 2 -j 2 -q 10 -B 200`
+    
+    **Explicación de parámetros**
+    
+    | Parámetro | Significado |
+    | ----- | ----- |
+    | `-n 2` | Dos colas de prioridad. |
+    | `-j 2` | Dos trabajos definidos. |
+    | `-q 10` | Quantum de 10 ms en cada cola. |
+    | `-B 200` | Cada 200 ms se realiza un boost: todos los trabajos vuelven a la cola de mayor prioridad. |
+    
+    ## Resultados
+    
+    ![image3](https://github.com/user-attachments/assets/1b81718c-a468-4ae1-9c9c-2901504928f3)
+
+    ### **¿Qué se espera?**
+    
+    * Ambos trabajos bajarán de prioridad debido a I/O o agotamiento del allotment.
+    
+    * Cada 200 ms, serán promovidos de nuevo a la cola más alta.
+    
+    * Incluso si uno queda atrapado en la cola baja, al menos recibirá **10 ms cada 200 ms**, garantizando un uso de CPU del **5% mínimo**.
+    
+    Esto evita el starvation y promueve la **equidad a largo plazo** en sistemas con MLFQ.
+       </details>
+       <br>
 
 6. One question that arises in scheduling is which end of a queue to add a job that just finished I/O; the -I flag changes this behavior
 for this scheduling simulator. Play around with some workloads and see if you can see the effect of this flag.
@@ -317,9 +442,22 @@ for this scheduling simulator. Play around with some workloads and see if you ca
    </details>
    <br>
 
-## Conclusions
 
-Coloque aqui las conclusiones...
+## **Conclusiones**
+
+La simulación realizada con el programa `mlfq.py` ha permitido comprender de manera práctica el funcionamiento del algoritmo de planificación MLFQ, así como el impacto de sus distintos parámetros en la asignación del tiempo de CPU. A través de la experimentación con trabajos simples y escenarios controlados, se pueden destacar varias observaciones clave:
+
+1. **El comportamiento de MLFQ es altamente configurable**: mediante parámetros como número de colas, quantums, allotments, boosting y reglas adicionales, se puede moldear el scheduler para adaptarse a distintos objetivos, desde la equidad hasta la priorización de tareas interactivas.
+
+2. **Simular Round-Robin es posible al reducir MLFQ a una sola cola con quantum fijo**, lo que demuestra la versatilidad del algoritmo como un superset de estrategias más simples.
+
+3. **Las reglas clásicas 4a y 4b (-S) muestran cómo procesos con I/O frecuentes pueden mantenerse en niveles altos de prioridad**, permitiendo observar casos de aprovechamiento injusto del CPU si no se controla adecuadamente.
+
+4. **El parámetro de boosting (-B) es esencial para evitar inanición**, garantizando que incluso los trabajos largos o menos interactivos reciban una porción mínima del CPU, promoviendo la justicia a largo plazo.
+
+5. **La opción \-I, que modifica el comportamiento tras operaciones de I/O, revela la importancia de decisiones aparentemente menores** que pueden afectar significativamente el rendimiento del sistema.
+
+En resumen, esta actividad confirma que MLFQ no solo es potente, sino también sensible a su configuración. Comprender a fondo sus reglas permite diseñar políticas de planificación que equilibran rendimiento, justicia y adaptabilidad, lo cual es crucial en entornos multitarea reales.
 
 ## Referencias 
 1. https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-mlfq.pdf
